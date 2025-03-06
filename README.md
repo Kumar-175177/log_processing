@@ -91,21 +91,25 @@ my-azure-data-pipeline/
 │── src/common/preprocessing.py      # Shared pre-processing module for data cleaning and enrichment  
 │── README.md                        # Project documentation (this file)  
 │── requirements.txt                  # (Optional) Python dependencies for local testing  
+
 File Descriptions
 1️⃣ databricks_streaming_ingest.py
 Uses Azure Databricks (Spark Structured Streaming) to read data from Azure Event Hubs.
 The JSON log events are parsed using a predefined schema and processed with a shared pre-processing module.
 The resulting data is stored in Azure Data Lake Storage in Parquet format, partitioned by event date.
 Checkpointing is used to ensure fault tolerance and exactly-once processing.
+
 2️⃣ adf_etl_pipeline.json
 An Azure Data Factory (ADF) pipeline that reads the raw Parquet data from ADLS, applies the same pre-processing logic, and aggregates key metrics such as average TTI and TTAR per page URL.
 The aggregated data is then loaded into Azure Synapse Analytics for downstream analytics.
 The job includes error handling mechanisms that notify the operations team via an Azure Function.
+
 3️⃣ azure_function_orchestrator.py
 An Azure Function that orchestrates the execution of the Azure Data Factory ETL pipeline.
 Listens to Azure Storage events to dynamically determine the input data path.
 Retrieves the latest processing checkpoint from Cosmos DB and triggers the ADF pipeline accordingly.
 Ensures robust orchestration with error handling and automated retries.
+
 4️⃣ src/common/preprocessing.py
 Contains the common logic for data cleaning and enrichment, which is used by both the streaming ingestion job and the batch ETL job to ensure consistency in data transformation.
 Setup & Prerequisites
