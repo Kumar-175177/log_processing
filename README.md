@@ -1,4 +1,4 @@
-# log_processing
+# Scalable Data Pipeline for High-Volume Log Processing
 Azure-Based Scalable Data Pipeline for High-Volume Log Processing
 This repository contains a modern, modular data pipeline that processes high-volume log data and real-time event streams. The pipeline leverages Azure Databricks (Apache Spark), Azure Event Hubs, Azure Data Lake Storage, Azure Data Factory, and Azure Functions to achieve low-latency processing, efficient ETL transformations, robust error handling, and checkpointing. It is designed for scalability and operational efficiency, ensuring data quality and consistency across both streaming and batch layers.
 
