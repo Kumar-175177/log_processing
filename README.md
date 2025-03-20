@@ -135,19 +135,18 @@ Managing large-scale data processing in a cost-efficient manner.
 Providing aggregated business metrics for sales and performance analysis.
 🔹 Solution Approach:
 1️⃣ Real-Time Ingestion with Kafka & Spark Structured Streaming
-
 Kafka captures log data from multiple sources (e.g., website events, transactions).
 Spark Structured Streaming reads these logs in real-time, ensuring schema consistency.
-2️⃣ Pre-processing & Storage in Azure Data Lake Storage (ADLS)
 
+2️⃣ Pre-processing & Storage in Azure Data Lake Storage (ADLS)
 Logs are parsed, validated, and enriched in a shared module (used for both streaming & batch).
 Processed data is stored in partitioned Parquet format for efficiency.
-3️⃣ Batch Processing with Azure Data Factory (ADF)
 
+3️⃣ Batch Processing with Azure Data Factory (ADF)
 ADF pipelines read the raw Parquet data, apply aggregations (e.g., avg TTI, TTAR per page URL).
 The final processed data is loaded into Azure Synapse Analytics for reporting & analytics.
-4️⃣ Orchestration with Azure Functions & Cosmos DB
 
+4️⃣ Orchestration with Azure Functions & Cosmos DB
 An Azure Function listens for new files in ADLS, triggering incremental processing.
 Checkpoints stored in Cosmos DB ensure no data duplication or loss.
 
