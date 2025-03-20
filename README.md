@@ -128,11 +128,11 @@ In this data pipeline, we integrate real-time ingestion with batch processing to
 At Sony, we dealt with camera and PlayStation sales data, including customer interactions, website logs, and purchase details. The goal was to process and analyze high-volume log data from various sources to gain insights into sales trends and customer behavior.
 
 🔹 Key Challenges:
-
 Handling both real-time and batch data efficiently.
 Ensuring schema consistency for log data.
 Managing large-scale data processing in a cost-efficient manner.
 Providing aggregated business metrics for sales and performance analysis.
+
 🔹 Solution Approach:
 1️⃣ Real-Time Ingestion with Kafka & Spark Structured Streaming
 Kafka captures log data from multiple sources (e.g., website events, transactions).
