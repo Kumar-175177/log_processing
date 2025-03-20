@@ -122,6 +122,35 @@ Contains the common logic for data cleaning and enrichment, which is used by bot
 ## Interview Explanation
 In this data pipeline, we integrate real-time ingestion with batch processing to efficiently manage high-volume log data. We use Spark Structured Streaming to read data from Kafka, where a strict schema ensures data consistency. The incoming JSON logs are parsed and enriched using a shared pre-processing module, which is used across both the streaming and batch layers. Processed data is stored as partitioned Parquet files in Azure Data Lake Storage (ADLS) for optimized storage. Later, an Azure Data Factory (ADF) pipeline reads this raw data, re-applies the pre-processing logic for consistency, and aggregates key performance metrics like average TTI and TTAR per page URL. The aggregated results are loaded into Azure Synapse Analytics for analytics. An Azure Function orchestrates the entire process by dynamically determining the input path from ADLS events, retrieving checkpoints from Azure Cosmos DB for incremental processing, and triggering the ADF pipeline. This design demonstrates a robust, scalable, and fault-tolerant approach to data processing and highlights best practices in modern data engineering.
 
+ Project Title: Scalable Data Pipeline for High-Volume Log Processing in Azure
+
+🔹 Business Context:
+At Sony, we dealt with camera and PlayStation sales data, including customer interactions, website logs, and purchase details. The goal was to process and analyze high-volume log data from various sources to gain insights into sales trends and customer behavior.
+
+🔹 Key Challenges:
+
+Handling both real-time and batch data efficiently.
+Ensuring schema consistency for log data.
+Managing large-scale data processing in a cost-efficient manner.
+Providing aggregated business metrics for sales and performance analysis.
+🔹 Solution Approach:
+1️⃣ Real-Time Ingestion with Kafka & Spark Structured Streaming
+
+Kafka captures log data from multiple sources (e.g., website events, transactions).
+Spark Structured Streaming reads these logs in real-time, ensuring schema consistency.
+2️⃣ Pre-processing & Storage in Azure Data Lake Storage (ADLS)
+
+Logs are parsed, validated, and enriched in a shared module (used for both streaming & batch).
+Processed data is stored in partitioned Parquet format for efficiency.
+3️⃣ Batch Processing with Azure Data Factory (ADF)
+
+ADF pipelines read the raw Parquet data, apply aggregations (e.g., avg TTI, TTAR per page URL).
+The final processed data is loaded into Azure Synapse Analytics for reporting & analytics.
+4️⃣ Orchestration with Azure Functions & Cosmos DB
+
+An Azure Function listens for new files in ADLS, triggering incremental processing.
+Checkpoints stored in Cosmos DB ensure no data duplication or loss.
+
 ## Learnings & Insights
 - **Modular Design**: Ensures reusability of the pre-processing logic.
 - **Fault Tolerance**: Checkpointing and Cosmos DB enable incremental processing.
