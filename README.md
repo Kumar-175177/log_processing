@@ -150,6 +150,200 @@ The final processed data is loaded into Azure Synapse Analytics for reporting & 
 An Azure Function listens for new files in ADLS, triggering incremental processing.
 Checkpoints stored in Cosmos DB ensure no data duplication or loss.
 
+Business Context
+At Sony, we handled large-scale camera and PlayStation sales data, including:
+
+Website interaction logs (clickstreams)
+
+Customer purchase records
+
+Regional sales trends
+
+Objective: Efficiently process and analyze high-volume log data to derive business insights on:
+
+Website performance (e.g., response times)
+
+User behavior
+
+Product performance across regions
+
+🚧 Key Challenges
+Handling dual-mode data ingestion (real-time + batch)
+
+Ensuring schema consistency for semi-structured JSON logs
+
+Managing large-scale data in a cost-efficient and fault-tolerant way
+
+Generating business-friendly aggregated metrics (e.g., avg TTI/TTAR per page)
+
+🏗️ High-Level Architecture
+css
+Copy
+Edit
+[Log Sources] → [Kafka] → [Spark Structured Streaming] → [ADLS - Bronze]
+                                                ↓
+                                      [Azure Function Trigger]
+                                                ↓
+                                  [ADF Batch Job (Spark Pool)]
+                                                ↓
+                           [Aggregations & Enrichment (Silver & Gold)]
+                                                ↓
+                         [Azure Synapse Analytics] & [Power BI Dashboards]
+🧪 Data Schema
+1. JSON Log Structure
+json
+Copy
+Edit
+{
+  "session_id": "abc123",
+  "page_url": "/product/playstation5",
+  "timestamp": "2024-04-20T14:35:21Z",
+  "TTI": 1500,
+  "TTAR": 800,
+  "user_actions": [
+    {"action": "click", "target": "buy_now", "time": 1650},
+    {"action": "scroll", "target": "reviews", "time": 1400}
+  ]
+}
+2. Structured Data (Sales CSV)
+ProductID	ProductName	Region	Revenue	UnitsSold
+P123	PS5 Console	US	100000	500
+
+🔄 Data Flow & Transformations
+1️⃣ Real-Time Ingestion (Bronze Layer)
+Tooling: Kafka + Spark Structured Streaming
+
+Schema enforcement: Defined via Spark StructType, e.g.:
+
+python
+Copy
+Edit
+StructType([
+    StructField("session_id", StringType()),
+    StructField("page_url", StringType(), nullable=False),
+    StructField("TTI", IntegerType()),
+    StructField("TTAR", IntegerType()),
+    StructField("user_actions", ArrayType(
+        StructType([
+            StructField("action", StringType()),
+            StructField("target", StringType()),
+            StructField("time", IntegerType())
+        ])
+    ))
+])
+Pre-Processing (Shared Module):
+
+Validate schema
+
+Flatten user_actions into separate rows
+
+Set default TTI = 0 if missing
+
+Append metadata: ingest_timestamp, source_type
+
+Storage Format: Partitioned Parquet files
+
+Partitioned by: year, month, day, hour
+
+Stored in: Azure Data Lake Storage Gen2 (Bronze)
+
+Data Volume:
+
+~20-30 GB/day
+
+~10K events/sec during peak traffic
+
+2️⃣ Batch Processing & Enrichment (Silver Layer)
+Trigger: Azure Function on ADLS file arrival
+
+Pre-Processing Logic: Reused same module to ensure consistency with streaming
+
+Aggregations:
+
+TTI (Time to Interactive): Average time for a page to become interactive
+
+TTAR (Time to Action Response): Time taken for the UI to respond to user interaction
+
+Example Spark SQL Query:
+
+sql
+Copy
+Edit
+SELECT page_url, 
+       AVG(TTI) AS avg_tti, 
+       AVG(TTAR) AS avg_ttar
+FROM cleaned_clickstream
+GROUP BY page_url
+Storage:
+
+Cleaned & aggregated output saved to Silver Layer (Delta Lake in ADLS)
+
+Partitioned by page_url, date
+
+3️⃣ Final Aggregations (Gold Layer)
+Join Operations:
+
+Join aggregated metrics (avg_tti, avg_ttar) with structured sales data and product master data
+
+Outputs:
+
+Azure Synapse Analytics for BI & reporting
+
+Power BI dashboards (plugged into Synapse views)
+
+Azure Cognitive Search for indexing metrics like:
+
+page_url, avg_tti, avg_ttar, region, product_category
+
+⚙️ Orchestration & Automation
+Azure Function:
+
+Triggered by ADLS blob creation events
+
+Identifies new input path dynamically
+
+Stores & retrieves checkpoint info from Azure Cosmos DB
+
+Triggers ADF pipeline for batch job
+
+Azure Data Factory:
+
+Spark Notebook activity handles transformation
+
+Parameterized pipeline supports reusability across multiple product categories or regions
+
+🧠 Cluster Configuration
+Synapse Spark Pools:
+
+Node Type: Memory-Optimized
+
+Cluster Size: 8 vCores, 64 GB RAM (auto-scale enabled)
+
+Driver Memory: 16 GB
+
+Executors: 4–8 based on load
+
+Runtime Version: Spark 3.2, Delta Lake enabled
+
+📊 Monitoring & Reliability
+Azure Monitor:
+
+Tracks Spark job metrics, ADF run status, Function logs
+
+Retry Logic:
+
+Exponential backoff via Azure Functions: Retry every 1s → 2s → 4s → Max 5 attempts
+
+Alerting:
+
+Email/Teams alert on SLA violations (e.g., delay > 15 mins or Function failure)
+
+Logic Apps:
+
+Trigger manual approval or fallback mechanism in critical failure scenarios
+
+
+
 ## Learnings & Insights
 - **Modular Design**: Ensures reusability of the pre-processing logic.
 - **Fault Tolerance**: Checkpointing and Cosmos DB enable incremental processing.
