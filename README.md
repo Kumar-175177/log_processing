@@ -133,6 +133,16 @@ Ensuring schema consistency for log data.
 Managing large-scale data processing in a cost-efficient manner.
 Providing aggregated business metrics for sales and performance analysis.
 
+Data Details
+Data Sources:
+
+Structured Data (CSV): Server logs
+
+Columns: timestamp, log_level, server_id, user_id, message, response_time, status_code
+Semi-Structured Data (JSON): Application event metadata
+
+JSON Fields: event_type, device, os, location, event_properties (nested field with keys like latency, error_code, retry_count)
+
 🔹 Solution Approach:
 1️⃣ Real-Time Ingestion with Kafka & Spark Structured Streaming
 Kafka captures log data from multiple sources (e.g., website events, transactions).
